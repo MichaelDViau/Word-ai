@@ -12,6 +12,7 @@ import {
 import { Logo } from "@/components/Logo";
 import { DocumentCard } from "@/components/dashboard/DocumentCard";
 import { Modal } from "@/components/ui/Modal";
+import { ThemeToggle } from "@/components/editor/ThemeToggle";
 import { useDocuments } from "@/lib/useDocuments";
 import { ACCEPTED_IMPORT_TYPES, importFile } from "@/lib/import";
 import { localDocumentStore } from "@/lib/store";
@@ -96,13 +97,14 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
       {/* Top bar */}
-      <header className="sticky top-0 z-30 border-b border-ink-200 bg-white/80 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-ink-200 bg-white/80 backdrop-blur dark:border-night-border dark:bg-night-surface/80">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Logo />
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm font-medium text-ink-700 transition hover:border-ink-300 hover:bg-ink-50"
+              className="inline-flex items-center gap-2 rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm font-medium text-ink-700 transition hover:border-ink-300 hover:bg-ink-50 dark:border-night-border dark:bg-night-raised dark:text-ink-200 dark:hover:bg-night-hover"
             >
               <FileUp className="h-4 w-4" />
               <span className="hidden sm:inline">Open file</span>
@@ -122,14 +124,14 @@ export default function DashboardPage() {
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         {/* Hero */}
         <div className="mb-8 flex flex-col gap-2">
-          <div className="inline-flex w-fit items-center gap-1.5 rounded-full bg-nopal-50 px-3 py-1 text-xs font-medium text-nopal-700">
+          <div className="inline-flex w-fit items-center gap-1.5 rounded-full bg-nopal-50 px-3 py-1 text-xs font-medium text-nopal-700 dark:bg-nopal-500/15 dark:text-nopal-300">
             <Sparkles className="h-3.5 w-3.5" />
             Your documents
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink-950 sm:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-ink-950 dark:text-ink-50 sm:text-3xl">
             Welcome back
           </h1>
-          <p className="text-sm text-ink-500">
+          <p className="text-sm text-ink-500 dark:text-ink-400">
             Create a new document, open one from your device, or pick up where
             you left off.
           </p>
@@ -143,7 +145,7 @@ export default function DashboardPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search documents…"
-              className="w-full rounded-xl border border-ink-200 bg-white py-2.5 pl-10 pr-4 text-sm text-ink-900 outline-none transition placeholder:text-ink-400 focus:border-nopal-400 focus:ring-2 focus:ring-nopal-100"
+              className="w-full rounded-xl border border-ink-200 bg-white py-2.5 pl-10 pr-4 text-sm text-ink-900 outline-none transition placeholder:text-ink-400 focus:border-nopal-400 focus:ring-2 focus:ring-nopal-100 dark:border-night-border dark:bg-night-raised dark:text-ink-100 dark:focus:ring-nopal-500/20"
             />
           </div>
           <div className="relative inline-flex items-center">
@@ -151,7 +153,7 @@ export default function DashboardPage() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="appearance-none rounded-xl border border-ink-200 bg-white py-2.5 pl-10 pr-9 text-sm font-medium text-ink-700 outline-none transition focus:border-nopal-400 focus:ring-2 focus:ring-nopal-100"
+              className="appearance-none rounded-xl border border-ink-200 bg-white py-2.5 pl-10 pr-9 text-sm font-medium text-ink-700 outline-none transition focus:border-nopal-400 focus:ring-2 focus:ring-nopal-100 dark:border-night-border dark:bg-night-raised dark:text-ink-200 dark:focus:ring-nopal-500/20"
             >
               {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
                 <option key={key} value={key}>
@@ -208,10 +210,10 @@ export default function DashboardPage() {
 
       {/* Importing overlay */}
       {importing && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-white/70 backdrop-blur-sm">
-          <div className="flex items-center gap-3 rounded-xl bg-white px-5 py-4 shadow-lg">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-white/70 backdrop-blur-sm dark:bg-night-base/70">
+          <div className="flex items-center gap-3 rounded-xl bg-white px-5 py-4 shadow-lg dark:bg-night-raised">
             <span className="h-5 w-5 animate-spin rounded-full border-2 border-nopal-200 border-t-nopal-600" />
-            <span className="text-sm font-medium text-ink-700">
+            <span className="text-sm font-medium text-ink-700 dark:text-ink-200">
               Importing document…
             </span>
           </div>
@@ -229,12 +231,12 @@ export default function DashboardPage() {
           value={renameValue}
           onChange={(e) => setRenameValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && confirmRename()}
-          className="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm outline-none focus:border-nopal-400 focus:ring-2 focus:ring-nopal-100"
+          className="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm outline-none focus:border-nopal-400 focus:ring-2 focus:ring-nopal-100 dark:border-night-border dark:bg-night-input dark:text-ink-100 dark:focus:ring-nopal-500/20"
         />
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={() => setRenameTarget(null)}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-ink-600 hover:bg-ink-50"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-ink-600 hover:bg-ink-50 dark:text-ink-300 dark:hover:bg-night-hover"
           >
             Cancel
           </button>
@@ -253,9 +255,9 @@ export default function DashboardPage() {
         onClose={() => setDeleteTarget(null)}
         title="Delete document"
       >
-        <p className="text-sm text-ink-600">
+        <p className="text-sm text-ink-600 dark:text-ink-300">
           Are you sure you want to delete{" "}
-          <span className="font-semibold text-ink-900">
+          <span className="font-semibold text-ink-900 dark:text-ink-100">
             {deleteTarget?.title}
           </span>
           ? This action can&apos;t be undone.
@@ -263,7 +265,7 @@ export default function DashboardPage() {
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={() => setDeleteTarget(null)}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-ink-600 hover:bg-ink-50"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-ink-600 hover:bg-ink-50 dark:text-ink-300 dark:hover:bg-night-hover"
           >
             Cancel
           </button>
@@ -285,7 +287,7 @@ function SkeletonGrid() {
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="h-56 animate-pulse rounded-2xl border border-ink-100 bg-white"
+          className="h-56 animate-pulse rounded-2xl border border-ink-100 bg-white dark:border-night-border dark:bg-night-surface"
         />
       ))}
     </div>
@@ -302,15 +304,15 @@ function EmptyState({
   onOpen: () => void;
 }) {
   return (
-    <div className="grid place-items-center rounded-2xl border border-dashed border-ink-200 bg-white py-20 text-center">
+    <div className="grid place-items-center rounded-2xl border border-dashed border-ink-200 bg-white py-20 text-center dark:border-night-border dark:bg-night-surface">
       <div className="max-w-sm px-6">
-        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-nopal-50">
-          <Plus className="h-7 w-7 text-nopal-600" />
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-nopal-50 dark:bg-nopal-500/15">
+          <Plus className="h-7 w-7 text-nopal-600 dark:text-nopal-400" />
         </div>
-        <h2 className="text-lg font-semibold text-ink-950">
+        <h2 className="text-lg font-semibold text-ink-950 dark:text-ink-50">
           {hasDocs ? "No matching documents" : "No documents yet"}
         </h2>
-        <p className="mt-1 text-sm text-ink-500">
+        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">
           {hasDocs
             ? "Try a different search term."
             : "Create your first document or open a file from your device to get started."}
@@ -327,7 +329,7 @@ function EmptyState({
             <button
               onClick={onOpen}
               className={cn(
-                "inline-flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50",
+                "inline-flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50 dark:border-night-border dark:text-ink-200 dark:hover:bg-night-hover",
               )}
             >
               <FileUp className="h-4 w-4" />

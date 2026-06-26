@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -35,6 +36,16 @@ const config: Config = {
           800: "#37404e",
           900: "#313844",
           950: "#1d222b",
+        },
+        // Premium dark-mode surfaces (a deep, slightly blue-tinted charcoal —
+        // not a flat inversion). Used behind `dark:` variants throughout.
+        night: {
+          base: "#0e1217", // app background
+          surface: "#161b22", // header, toolbar, page, panels
+          raised: "#1d232c", // dropdowns, modals, popovers
+          input: "#11161c", // inputs / wells
+          border: "#272e38", // hairlines
+          hover: "#222a34", // hover fills
         },
       },
       fontFamily: {

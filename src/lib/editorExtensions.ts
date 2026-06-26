@@ -6,6 +6,11 @@ import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
 import FontFamily from "@tiptap/extension-font-family";
 import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
+import Table from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableHeader from "@tiptap/extension-table-header";
+import TableCell from "@tiptap/extension-table-cell";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -16,6 +21,7 @@ import type { Extensions } from "@tiptap/react";
 import { FontSize } from "./fontSize";
 import { LineHeight } from "./lineHeight";
 import { HeadingWithStyle } from "./headingStyle";
+import { PageBreak } from "./pageBreak";
 
 /**
  * The complete set of TipTap extensions powering the editor. Centralized here
@@ -49,6 +55,16 @@ export function buildExtensions(): Extensions {
       autolink: true,
       HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
     }),
+    Image.configure({
+      inline: false,
+      allowBase64: true,
+      HTMLAttributes: { class: "editor-image" },
+    }),
+    Table.configure({ resizable: true }),
+    TableRow,
+    TableHeader,
+    TableCell,
+    PageBreak,
     TaskList,
     TaskItem.configure({ nested: true }),
     CharacterCount,

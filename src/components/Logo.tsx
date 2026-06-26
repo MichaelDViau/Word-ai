@@ -31,8 +31,8 @@ export function Logo({
         </svg>
       </span>
       {showWordmark && (
-        <span className="text-[15px] font-semibold tracking-tight text-ink-950">
-          Nopal<span className="text-nopal-600"> AI</span>
+        <span className="text-[15px] font-semibold tracking-tight text-ink-950 dark:text-ink-50">
+          Nopal<span className="text-nopal-600 dark:text-nopal-400"> AI</span>
         </span>
       )}
     </span>
