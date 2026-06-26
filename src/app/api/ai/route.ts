@@ -238,13 +238,33 @@ export async function POST(req: NextRequest) {
     if (!upstream.ok) {
       // Surface a friendly, non-leaky message based on status.
       const status = upstream.status;
+      // Pull OpenRouter's own error wording (which never contains our key) so
+      // misconfiguration — bad key, no credits, blocked model — is obvious.
+      let detail = "";
+      try {
+        const errBody = await upstream.json();
+        detail =
+          errBody?.error?.message ||
+          errBody?.error?.metadata?.raw ||
+          errBody?.message ||
+          (typeof errBody?.error === "string" ? errBody.error : "");
+      } catch {
+        try {
+          detail = (await upstream.text()).slice(0, 200);
+        } catch {
+          /* ignore unreadable bodies */
+        }
+      }
       const friendly =
         status === 401 || status === 403
           ? "The AI service rejected the request. Check your API key."
           : status === 429
             ? "The AI service is rate limiting requests. Please try again shortly."
             : "The AI service is temporarily unavailable. Please try again.";
-      return NextResponse.json({ error: friendly }, { status: 502 });
+      const message = detail
+        ? `${friendly} (OpenRouter ${status}: ${detail})`
+        : `${friendly} (HTTP ${status})`;
+      return NextResponse.json({ error: message }, { status: 502 });
     }
 
     const data = await upstream.json();
