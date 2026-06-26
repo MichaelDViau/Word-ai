@@ -39,9 +39,10 @@ import {
   LINE_SPACINGS,
   TEXT_COLORS,
 } from "@/lib/constants";
+import { useI18n, type TFunction } from "@/lib/i18n";
 
 interface BlockStyle {
-  label: string;
+  labelKey: string;
   className: string;
   isActive: (e: Editor) => boolean;
   apply: (e: Editor) => void;
@@ -49,7 +50,7 @@ interface BlockStyle {
 
 const BLOCK_STYLES: BlockStyle[] = [
   {
-    label: "Title",
+    labelKey: "block.title",
     className: "text-2xl font-extrabold",
     isActive: (e) => e.isActive("heading", { level: 1, displayStyle: "title" }),
     apply: (e) =>
@@ -60,7 +61,7 @@ const BLOCK_STYLES: BlockStyle[] = [
         .run(),
   },
   {
-    label: "Subtitle",
+    labelKey: "block.subtitle",
     className: "text-lg text-ink-500",
     isActive: (e) =>
       e.isActive("heading", { level: 2, displayStyle: "subtitle" }),
@@ -72,45 +73,45 @@ const BLOCK_STYLES: BlockStyle[] = [
         .run(),
   },
   {
-    label: "Heading 1",
+    labelKey: "block.heading1",
     className: "text-xl font-bold",
     isActive: (e) => e.isActive("heading", { level: 1, displayStyle: null }),
     apply: (e) =>
       e.chain().focus().setNode("heading", { level: 1, displayStyle: null }).run(),
   },
   {
-    label: "Heading 2",
+    labelKey: "block.heading2",
     className: "text-lg font-bold",
     isActive: (e) => e.isActive("heading", { level: 2, displayStyle: null }),
     apply: (e) =>
       e.chain().focus().setNode("heading", { level: 2, displayStyle: null }).run(),
   },
   {
-    label: "Heading 3",
+    labelKey: "block.heading3",
     className: "text-base font-semibold",
     isActive: (e) => e.isActive("heading", { level: 3, displayStyle: null }),
     apply: (e) =>
       e.chain().focus().setNode("heading", { level: 3, displayStyle: null }).run(),
   },
   {
-    label: "Body text",
+    labelKey: "block.body",
     className: "text-sm",
     isActive: (e) => e.isActive("paragraph"),
     apply: (e) => e.chain().focus().setParagraph().run(),
   },
 ];
 
-function activeBlockLabel(editor: Editor): string {
+function activeBlockLabelKey(editor: Editor): string {
   const match = BLOCK_STYLES.find((b) => b.isActive(editor));
-  return match ? match.label : "Body text";
+  return match ? match.labelKey : "block.body";
 }
 
-function activeFontLabel(editor: Editor): string {
+function activeFontLabel(editor: Editor, t: TFunction): string {
   const family = editor.getAttributes("textStyle").fontFamily as
     | string
     | undefined;
   const found = FONT_FAMILIES.find((f) => f.value === family);
-  return found ? found.label : "Sans Serif";
+  return found ? found.label : t("common.default");
 }
 
 function activeFontSize(editor: Editor): string {
@@ -124,20 +125,21 @@ function activeFontSize(editor: Editor): string {
  * active states stay accurate.
  */
 export function Toolbar({ editor }: { editor: Editor }) {
+  const { t } = useI18n();
   // Re-render is driven by the parent passing a changing key/state; we also
   // read directly off the editor for active states.
   return (
     <div className="no-scrollbar flex items-center gap-0.5 overflow-x-auto px-2 py-1.5">
       {/* Undo / redo */}
       <ToolbarButton
-        title="Undo (⌘Z)"
+        title={t("tb.undo")}
         onClick={() => editor.chain().focus().undo().run()}
         disabled={!editor.can().undo()}
       >
         <Undo2 className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Redo (⌘⇧Z)"
+        title={t("tb.redo")}
         onClick={() => editor.chain().focus().redo().run()}
         disabled={!editor.can().redo()}
       >
@@ -153,8 +155,8 @@ export function Toolbar({ editor }: { editor: Editor }) {
           <DropdownTrigger
             open={open}
             toggle={toggle}
-            title="Paragraph style"
-            label={activeBlockLabel(editor)}
+            title={t("tb.paragraphStyle")}
+            label={t(activeBlockLabelKey(editor))}
             className="min-w-[104px] justify-between"
           />
         )}
@@ -163,14 +165,14 @@ export function Toolbar({ editor }: { editor: Editor }) {
           <div className="max-h-72 overflow-y-auto">
             {BLOCK_STYLES.map((style) => (
               <DropdownItem
-                key={style.label}
+                key={style.labelKey}
                 active={style.isActive(editor)}
                 onClick={() => {
                   style.apply(editor);
                   close();
                 }}
               >
-                <span className={style.className}>{style.label}</span>
+                <span className={style.className}>{t(style.labelKey)}</span>
               </DropdownItem>
             ))}
           </div>
@@ -186,8 +188,8 @@ export function Toolbar({ editor }: { editor: Editor }) {
           <DropdownTrigger
             open={open}
             toggle={toggle}
-            title="Font"
-            label={activeFontLabel(editor)}
+            title={t("tb.font")}
+            label={activeFontLabel(editor, t)}
             className="min-w-[112px] justify-between"
           />
         )}
@@ -206,7 +208,7 @@ export function Toolbar({ editor }: { editor: Editor }) {
                   <div key={`${font.value}-${i}`}>
                     {showHeader && (
                       <div className="px-2.5 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-ink-300 dark:text-ink-500">
-                        {font.group}
+                        {t(`fontgroup.${font.group}`)}
                       </div>
                     )}
                     <DropdownItem
@@ -234,7 +236,7 @@ export function Toolbar({ editor }: { editor: Editor }) {
           <DropdownTrigger
             open={open}
             toggle={toggle}
-            title="Font size"
+            title={t("tb.fontSize")}
             label={activeFontSize(editor)}
             className="min-w-[52px]"
           />
@@ -262,28 +264,28 @@ export function Toolbar({ editor }: { editor: Editor }) {
 
       {/* Inline marks */}
       <ToolbarButton
-        title="Bold (⌘B)"
+        title={t("tb.bold")}
         active={editor.isActive("bold")}
         onClick={() => editor.chain().focus().toggleBold().run()}
       >
         <Bold className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Italic (⌘I)"
+        title={t("tb.italic")}
         active={editor.isActive("italic")}
         onClick={() => editor.chain().focus().toggleItalic().run()}
       >
         <Italic className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Underline (⌘U)"
+        title={t("tb.underline")}
         active={editor.isActive("underline")}
         onClick={() => editor.chain().focus().toggleUnderline().run()}
       >
         <UnderlineIcon className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Strikethrough"
+        title={t("tb.strike")}
         active={editor.isActive("strike")}
         onClick={() => editor.chain().focus().toggleStrike().run()}
       >
@@ -292,7 +294,7 @@ export function Toolbar({ editor }: { editor: Editor }) {
 
       {/* Text color */}
       <ColorMenu
-        title="Text color"
+        title={t("tb.textColor")}
         icon={
           <Baseline
             className="h-4 w-4"
@@ -307,12 +309,12 @@ export function Toolbar({ editor }: { editor: Editor }) {
         current={editor.getAttributes("textStyle").color as string | undefined}
         onPick={(c) => editor.chain().focus().setColor(c).run()}
         onClear={() => editor.chain().focus().unsetColor().run()}
-        clearLabel="Default color"
+        clearLabel={t("tb.defaultColor")}
       />
 
       {/* Highlight */}
       <ColorMenu
-        title="Highlight color"
+        title={t("tb.highlightColor")}
         icon={<Highlighter className="h-4 w-4" />}
         colors={HIGHLIGHT_COLORS}
         current={editor.getAttributes("highlight").color as string | undefined}
@@ -320,7 +322,7 @@ export function Toolbar({ editor }: { editor: Editor }) {
           editor.chain().focus().toggleHighlight({ color: c }).run()
         }
         onClear={() => editor.chain().focus().unsetHighlight().run()}
-        clearLabel="No highlight"
+        clearLabel={t("tb.noHighlight")}
       />
 
       {/* Link */}
@@ -330,21 +332,21 @@ export function Toolbar({ editor }: { editor: Editor }) {
 
       {/* Lists */}
       <ToolbarButton
-        title="Bulleted list"
+        title={t("tb.bulletList")}
         active={editor.isActive("bulletList")}
         onClick={() => editor.chain().focus().toggleBulletList().run()}
       >
         <List className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Numbered list"
+        title={t("tb.numberedList")}
         active={editor.isActive("orderedList")}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
       >
         <ListOrdered className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Checklist"
+        title={t("tb.checklist")}
         active={editor.isActive("taskList")}
         onClick={() => editor.chain().focus().toggleTaskList().run()}
       >
@@ -355,28 +357,28 @@ export function Toolbar({ editor }: { editor: Editor }) {
 
       {/* Alignment */}
       <ToolbarButton
-        title="Align left"
+        title={t("tb.alignLeft")}
         active={editor.isActive({ textAlign: "left" })}
         onClick={() => editor.chain().focus().setTextAlign("left").run()}
       >
         <AlignLeft className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Align center"
+        title={t("tb.alignCenter")}
         active={editor.isActive({ textAlign: "center" })}
         onClick={() => editor.chain().focus().setTextAlign("center").run()}
       >
         <AlignCenter className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Align right"
+        title={t("tb.alignRight")}
         active={editor.isActive({ textAlign: "right" })}
         onClick={() => editor.chain().focus().setTextAlign("right").run()}
       >
         <AlignRight className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Justify"
+        title={t("tb.justify")}
         active={editor.isActive({ textAlign: "justify" })}
         onClick={() => editor.chain().focus().setTextAlign("justify").run()}
       >
@@ -390,8 +392,8 @@ export function Toolbar({ editor }: { editor: Editor }) {
           <DropdownTrigger
             open={open}
             toggle={toggle}
-            title="Line spacing"
-            label="Spacing"
+            title={t("tb.lineSpacing")}
+            label={t("tb.spacing")}
             className="min-w-[80px]"
           />
         )}
@@ -406,7 +408,7 @@ export function Toolbar({ editor }: { editor: Editor }) {
                   close();
                 }}
               >
-                {s.label}
+                {s.tkey ? t(s.tkey) : s.label}
               </DropdownItem>
             ))}
           </div>
@@ -418,14 +420,14 @@ export function Toolbar({ editor }: { editor: Editor }) {
       {/* Indent / outdent — implemented via list sink/lift, falling back to
           nothing outside lists (kept honest: disabled when not applicable). */}
       <ToolbarButton
-        title="Decrease indent"
+        title={t("tb.decreaseIndent")}
         disabled={!editor.can().liftListItem("listItem")}
         onClick={() => editor.chain().focus().liftListItem("listItem").run()}
       >
         <Outdent className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Increase indent"
+        title={t("tb.increaseIndent")}
         disabled={!editor.can().sinkListItem("listItem")}
         onClick={() => editor.chain().focus().sinkListItem("listItem").run()}
       >
@@ -436,21 +438,21 @@ export function Toolbar({ editor }: { editor: Editor }) {
 
       {/* Blocks */}
       <ToolbarButton
-        title="Block quote"
+        title={t("tb.blockquote")}
         active={editor.isActive("blockquote")}
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
       >
         <Quote className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Code block"
+        title={t("tb.codeBlock")}
         active={editor.isActive("codeBlock")}
         onClick={() => editor.chain().focus().toggleCodeBlock().run()}
       >
         <Code2 className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        title="Horizontal divider"
+        title={t("tb.horizontalDivider")}
         onClick={() => editor.chain().focus().setHorizontalRule().run()}
       >
         <Minus className="h-4 w-4" />
@@ -533,6 +535,7 @@ function ColorMenu({
 }
 
 function LinkButton({ editor }: { editor: Editor }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
 
@@ -561,7 +564,7 @@ function LinkButton({ editor }: { editor: Editor }) {
   return (
     <div className="relative">
       <ToolbarButton
-        title="Insert link"
+        title={t("tb.insertLink")}
         active={editor.isActive("link")}
         onClick={start}
       >
@@ -577,7 +580,7 @@ function LinkButton({ editor }: { editor: Editor }) {
               if (e.key === "Enter") apply();
               if (e.key === "Escape") setOpen(false);
             }}
-            placeholder="Paste or type a URL"
+            placeholder={t("tb.pasteUrl")}
             className="w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-sm outline-none focus:border-nopal-400 dark:border-night-border dark:bg-night-input dark:text-ink-100"
           />
           <div className="mt-2 flex justify-end gap-1.5">
@@ -586,14 +589,14 @@ function LinkButton({ editor }: { editor: Editor }) {
               onClick={() => setOpen(false)}
               className="rounded-md px-2.5 py-1 text-xs text-ink-600 hover:bg-ink-50 dark:text-ink-300 dark:hover:bg-night-hover"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={apply}
               className="rounded-md bg-nopal-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-nopal-700"
             >
-              Apply
+              {t("common.apply")}
             </button>
           </div>
         </div>

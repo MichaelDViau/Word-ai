@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/lib/theme";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
 
 /**
@@ -12,11 +13,12 @@ import { cn } from "@/lib/cn";
  */
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, toggle } = useTheme();
+  const { t } = useI18n();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
   const isDark = theme === "dark";
-  const label = isDark ? "Switch to light mode" : "Switch to dark mode";
+  const label = isDark ? t("theme.toLight") : t("theme.toDark");
 
   return (
     <button

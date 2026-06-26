@@ -7,6 +7,8 @@
  * bundle small.
  */
 
+import { readPersistedLocale, translate } from "./i18n";
+
 export interface ImportResult {
   /** Suggested document title derived from the file name. */
   title: string;
@@ -15,7 +17,8 @@ export interface ImportResult {
 }
 
 const stripExtension = (name: string) =>
-  name.replace(/\.[^.]+$/, "").trim() || "Imported document";
+  name.replace(/\.[^.]+$/, "").trim() ||
+  translate(readPersistedLocale(), "import.importedDocument");
 
 const escapeHtml = (text: string) =>
   text
@@ -54,7 +57,7 @@ export async function importFile(file: File): Promise<ImportResult> {
   // Legacy .doc is not supported by mammoth's browser build.
   if (name.endsWith(".doc")) {
     throw new Error(
-      "Legacy .doc files aren't supported. Please save as .docx and try again.",
+      translate(readPersistedLocale(), "import.unsupportedDoc"),
     );
   }
 

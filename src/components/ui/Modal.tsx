@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
 
 /** Lightweight accessible modal with backdrop and Escape-to-close. */
@@ -18,6 +19,7 @@ export function Modal({
   children: React.ReactNode;
   className?: string;
 }) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -52,7 +54,7 @@ export function Modal({
             <button
               onClick={onClose}
               className="rounded-lg p-1 text-ink-400 transition hover:bg-ink-100 hover:text-ink-700 dark:hover:bg-night-hover dark:hover:text-ink-200"
-              aria-label="Close"
+              aria-label={t("modal.close")}
             >
               <X className="h-5 w-5" />
             </button>

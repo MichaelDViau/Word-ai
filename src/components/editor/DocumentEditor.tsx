@@ -20,6 +20,7 @@ import { Toolbar } from "./Toolbar";
 import { AiPanel } from "./AiPanel";
 import { MenuBar, type MenuBarHandlers } from "./MenuBar";
 import { ThemeToggle } from "./ThemeToggle";
+import { LanguageToggle } from "./LanguageToggle";
 import { Ruler } from "./Ruler";
 import { MobileToolbar } from "./MobileToolbar";
 import { PageSetupDialog } from "./PageSetupDialog";
@@ -46,6 +47,7 @@ import {
   type PageSettings,
 } from "@/lib/pageSettings";
 import { AUTOSAVE_DELAY_MS } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 import type { AiActionId } from "@/lib/ai";
 import type { DocumentRecord, SaveState } from "@/lib/types";
 import { cn } from "@/lib/cn";
@@ -54,6 +56,7 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
 
 export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [title, setTitle] = useState(initialDoc.title);
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [aiOpen, setAiOpen] = useState(false);
@@ -102,7 +105,7 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
     setSaveState("saving");
     try {
       await localDocumentStore.update(initialDoc.id, {
-        title: title.trim() || "Untitled document",
+        title: title.trim() || t("editor.untitled"),
         content: editor.getHTML(),
       });
       setSaveState("saved");
@@ -110,10 +113,10 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
       console.error(err);
       setSaveState("error");
       showToast(
-        err instanceof Error ? err.message : "Couldn't save your document.",
+        err instanceof Error ? err.message : t("editor.couldNotSave"),
       );
     }
-  }, [editor, initialDoc.id, title, showToast]);
+  }, [editor, initialDoc.id, title, showToast, t]);
 
   /** Debounced autosave triggered on edits. */
   const scheduleSave = useCallback(() => {
@@ -168,9 +171,9 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
   const handleSaveAs = useCallback(async () => {
     await save();
     const copy = await localDocumentStore.duplicate(initialDoc.id);
-    showToast("Saved as a copy");
+    showToast(t("editor.savedAsCopy"));
     router.push(`/editor/${copy.id}`);
-  }, [save, initialDoc.id, router, showToast]);
+  }, [save, initialDoc.id, router, showToast, t]);
 
   const handlePrint = useCallback(() => {
     window.print();
@@ -181,7 +184,7 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
     e.target.value = "";
     if (!file) return;
     try {
-      showToast("Importing…");
+      showToast(t("editor.importingShort"));
       const { title: importedTitle, html } = await importFile(file);
       const doc = await localDocumentStore.create({
         title: importedTitle,
@@ -189,7 +192,7 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
       });
       router.push(`/editor/${doc.id}`);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Import failed.");
+      showToast(err instanceof Error ? err.message : t("editor.importFailed"));
     }
   };
 
@@ -199,7 +202,7 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
       const html = editor.getHTML();
       const name = title.trim() || "Untitled document";
       try {
-        showToast(`Exporting ${format.toUpperCase()}…`);
+        showToast(t("editor.exporting", { fmt: format.toUpperCase() }));
         switch (format) {
           case "pdf":
             await exportPdf(name, html);
@@ -220,11 +223,13 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
       } catch (err) {
         console.error(err);
         showToast(
-          err instanceof Error ? err.message : `Could not export ${format}.`,
+          err instanceof Error
+            ? err.message
+            : t("editor.couldNotExport", { fmt: format }),
         );
       }
     },
-    [editor, title, showToast],
+    [editor, title, showToast, t],
   );
 
   // ---- Insert actions -----------------------------------------------------
@@ -236,11 +241,11 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
     e.target.value = "";
     if (!file || !editor) return;
     if (!file.type.startsWith("image/")) {
-      showToast("Please choose an image file.");
+      showToast(t("editor.chooseImage"));
       return;
     }
     if (file.size > MAX_IMAGE_BYTES) {
-      showToast("That image is too large (max 5MB).");
+      showToast(t("editor.imageTooLarge"));
       return;
     }
     const reader = new FileReader();
@@ -248,14 +253,14 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
       const src = reader.result as string;
       editor.chain().focus().setImage({ src }).run();
     };
-    reader.onerror = () => showToast("Couldn't read that image.");
+    reader.onerror = () => showToast(t("editor.couldNotReadImage"));
     reader.readAsDataURL(file);
   };
 
   const handleInsertLink = useCallback(() => {
     if (!editor) return;
     const prev = (editor.getAttributes("link").href as string) || "https://";
-    const url = window.prompt("Enter a URL", prev);
+    const url = window.prompt(t("editor.enterUrl"), prev);
     if (url === null) return;
     if (url.trim() === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
@@ -270,7 +275,7 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
       .extendMarkRange("link")
       .setLink({ href: normalized })
       .run();
-  }, [editor]);
+  }, [editor, t]);
 
   // ---- Fullscreen ---------------------------------------------------------
 
@@ -309,7 +314,7 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
       if (key === "s") {
         e.preventDefault();
         void save();
-        showToast("Document saved");
+        showToast(t("editor.documentSaved"));
       } else if (key === "f") {
         e.preventDefault();
         setFindOpen(true);
@@ -326,7 +331,7 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [save, showToast, handleInsertLink, setZoom, pageSettings.zoom]);
+  }, [save, showToast, handleInsertLink, setZoom, pageSettings.zoom, t]);
 
   // ---- Derived layout values ---------------------------------------------
 
@@ -338,7 +343,7 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
     onOpen: handleOpen,
     onSave: () => {
       void save();
-      showToast("Document saved");
+      showToast(t("editor.documentSaved"));
     },
     onSaveAs: handleSaveAs,
     onPrint: handlePrint,
@@ -381,8 +386,8 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
             href="/"
             onClick={() => void save()}
             className="grid h-9 w-9 place-items-center rounded-lg text-ink-500 transition hover:bg-ink-100 hover:text-ink-900 dark:text-ink-300 dark:hover:bg-night-hover dark:hover:text-ink-50"
-            aria-label="Back to documents"
-            title="Back to documents"
+            aria-label={t("editor.backToDocuments")}
+            title={t("editor.backToDocuments")}
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
@@ -395,20 +400,21 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={() => void save()}
-              placeholder="Untitled document"
-              aria-label="Document title"
+              placeholder={t("editor.untitled")}
+              aria-label={t("editor.titleAria")}
               className="min-w-0 max-w-xs flex-1 truncate rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm font-semibold text-ink-950 outline-none transition hover:border-ink-200 focus:border-nopal-400 focus:bg-white dark:text-ink-50 dark:hover:border-night-border dark:focus:bg-night-input sm:text-base"
             />
             <SaveIndicator state={saveState} />
           </div>
 
           <div className="flex items-center gap-1">
+            <LanguageToggle />
             <ThemeToggle />
             <button
               onClick={toggleFullscreen}
               className="hidden h-9 w-9 place-items-center rounded-lg text-ink-500 transition hover:bg-ink-100 hover:text-ink-900 dark:text-ink-300 dark:hover:bg-night-hover dark:hover:text-ink-50 sm:grid"
-              title={fullscreen ? "Exit full screen" : "Full screen"}
-              aria-label={fullscreen ? "Exit full screen" : "Full screen"}
+              title={fullscreen ? t("editor.exitFullScreen") : t("editor.fullScreen")}
+              aria-label={fullscreen ? t("editor.exitFullScreen") : t("editor.fullScreen")}
             >
               {fullscreen ? (
                 <Minimize2 className="h-5 w-5" />
@@ -424,10 +430,10 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
                   ? "bg-nopal-600 text-white hover:bg-nopal-700"
                   : "bg-nopal-50 text-nopal-700 hover:bg-nopal-100 dark:bg-nopal-500/15 dark:text-nopal-300 dark:hover:bg-nopal-500/25",
               )}
-              title="Toggle AI assistant"
+              title={t("editor.toggleAi")}
             >
               <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">AI</span>
+              <span className="hidden sm:inline">{t("editor.ai")}</span>
             </button>
           </div>
         </div>
@@ -472,7 +478,7 @@ export function DocumentEditor({ initialDoc }: { initialDoc: DocumentRecord }) {
           </div>
         </div>
         <p className="no-print mt-3 text-center text-xs text-ink-300 dark:text-ink-600">
-          Changes are saved automatically to this device.
+          {t("editor.autosaveNote")}
         </p>
       </main>
 
@@ -560,28 +566,29 @@ function ZoomControl({
   onOut: () => void;
   onReset: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex items-center gap-0.5">
       <button
         onClick={onOut}
         className="grid h-7 w-7 place-items-center rounded-md text-ink-500 transition hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-night-hover"
-        title="Zoom out"
-        aria-label="Zoom out"
+        title={t("editor.zoomOut")}
+        aria-label={t("editor.zoomOut")}
       >
         <Minus className="h-4 w-4" />
       </button>
       <button
         onClick={onReset}
         className="min-w-[3rem] rounded-md px-1.5 py-1 text-xs font-medium text-ink-600 transition hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-night-hover"
-        title="Reset zoom"
+        title={t("editor.resetZoom")}
       >
         {Math.round(zoom * 100)}%
       </button>
       <button
         onClick={onIn}
         className="grid h-7 w-7 place-items-center rounded-md text-ink-500 transition hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-night-hover"
-        title="Zoom in"
-        aria-label="Zoom in"
+        title={t("editor.zoomIn")}
+        aria-label={t("editor.zoomIn")}
       >
         <Plus className="h-4 w-4" />
       </button>
@@ -590,25 +597,26 @@ function ZoomControl({
 }
 
 function SaveIndicator({ state }: { state: SaveState }) {
+  const { t } = useI18n();
   const map = {
     saved: {
       icon: <Check className="h-3.5 w-3.5" />,
-      label: "Saved",
+      label: t("editor.saved"),
       className: "text-nopal-600 dark:text-nopal-400",
     },
     saving: {
       icon: <Loader2 className="h-3.5 w-3.5 animate-spin" />,
-      label: "Saving…",
+      label: t("editor.saving"),
       className: "text-ink-400",
     },
     unsaved: {
       icon: <Loader2 className="h-3.5 w-3.5 animate-spin" />,
-      label: "Saving…",
+      label: t("editor.saving"),
       className: "text-ink-400",
     },
     error: {
       icon: <CloudOff className="h-3.5 w-3.5" />,
-      label: "Not saved",
+      label: t("editor.notSaved"),
       className: "text-rose-500",
     },
   }[state];
