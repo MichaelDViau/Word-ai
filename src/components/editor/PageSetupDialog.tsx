@@ -7,13 +7,14 @@ import {
   type PageSettings,
   type PageSizeId,
 } from "@/lib/pageSettings";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
 
-const PRESETS: { id: PageSizeId; label: string; hint: string }[] = [
-  { id: "letter", label: "Letter", hint: PAGE_SIZES.letter.hint },
-  { id: "legal", label: "Legal", hint: PAGE_SIZES.legal.hint },
-  { id: "a4", label: "A4", hint: PAGE_SIZES.a4.hint },
-  { id: "custom", label: "Custom", hint: "Set your own" },
+const PRESETS: { id: PageSizeId; labelKey: string; hint: string }[] = [
+  { id: "letter", labelKey: "page.letter", hint: PAGE_SIZES.letter.hint },
+  { id: "legal", labelKey: "page.legal", hint: PAGE_SIZES.legal.hint },
+  { id: "a4", labelKey: "page.a4", hint: PAGE_SIZES.a4.hint },
+  { id: "custom", labelKey: "page.custom", hint: "page.setYourOwn" },
 ];
 
 /** Dialog for choosing the page size (Letter / Legal / A4 / Custom). */
@@ -28,6 +29,7 @@ export function PageSetupDialog({
   onClose: () => void;
   onApply: (next: PageSettings) => void;
 }) {
+  const { t } = useI18n();
   const [sizeId, setSizeId] = useState<PageSizeId>(settings.sizeId);
   const [w, setW] = useState(String(settings.customWidthIn));
   const [h, setH] = useState(String(settings.customHeightIn));
@@ -49,7 +51,7 @@ export function PageSetupDialog({
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Page layout & size">
+    <Modal open={open} onClose={onClose} title={t("page.title")}>
       <div className="grid grid-cols-2 gap-2">
         {PRESETS.map((p) => (
           <button
@@ -63,9 +65,11 @@ export function PageSetupDialog({
             )}
           >
             <span className="text-sm font-medium text-ink-900 dark:text-ink-100">
-              {p.label}
+              {t(p.labelKey)}
             </span>
-            <span className="text-xs text-ink-400 dark:text-ink-500">{p.hint}</span>
+            <span className="text-xs text-ink-400 dark:text-ink-500">
+              {p.id === "custom" ? t(p.hint) : p.hint}
+            </span>
           </button>
         ))}
       </div>
@@ -73,7 +77,7 @@ export function PageSetupDialog({
       {sizeId === "custom" && (
         <div className="mt-4 flex items-end gap-3">
           <label className="flex-1 text-xs font-medium text-ink-500 dark:text-ink-400">
-            Width (in)
+            {t("page.width")}
             <input
               type="number"
               min={1}
@@ -86,7 +90,7 @@ export function PageSetupDialog({
           </label>
           <span className="pb-2 text-ink-400">×</span>
           <label className="flex-1 text-xs font-medium text-ink-500 dark:text-ink-400">
-            Height (in)
+            {t("page.height")}
             <input
               type="number"
               min={1}
@@ -105,13 +109,13 @@ export function PageSetupDialog({
           onClick={onClose}
           className="rounded-lg px-4 py-2 text-sm font-medium text-ink-600 hover:bg-ink-50 dark:text-ink-300 dark:hover:bg-night-hover"
         >
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           onClick={apply}
           className="rounded-lg bg-nopal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-nopal-700"
         >
-          Apply
+          {t("common.apply")}
         </button>
       </div>
     </Modal>

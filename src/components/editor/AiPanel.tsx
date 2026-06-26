@@ -21,6 +21,7 @@ import {
   type AiAction,
   type AiActionId,
 } from "@/lib/ai";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
 
 type Status = "idle" | "loading" | "result" | "error";
@@ -91,6 +92,7 @@ export function AiPanel({
   pendingAction?: AiActionId | null;
   onPendingHandled?: () => void;
 }) {
+  const { t } = useI18n();
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
@@ -125,13 +127,13 @@ export function AiPanel({
       if (isCustom && !instruction.trim() && !selectedText) {
         setActiveAction(action);
         setStatus("error");
-        setError("Type an instruction or select some text first.");
+        setError(t("ai.needInstruction"));
         return;
       }
       if (!isCustom && !selectedText && !action.worksWithoutSelection) {
         setActiveAction(action);
         setStatus("error");
-        setError("Select some text in the document first, then try again.");
+        setError(t("ai.needSelection"));
         return;
       }
 
@@ -164,12 +166,12 @@ export function AiPanel({
       } catch (err) {
         if (controller.signal.aborted) return; // user closed/cancelled
         setStatus("error");
-        setError(err instanceof Error ? err.message : "Something went wrong.");
+        setError(err instanceof Error ? err.message : t("ai.somethingWrong"));
       } finally {
         abortRef.current = null;
       }
     },
-    [editor, instruction, language, cancel],
+    [editor, instruction, language, cancel, t],
   );
 
   const handleActionClick = useCallback(
@@ -248,15 +250,15 @@ export function AiPanel({
           </span>
           <div>
             <h2 className="text-sm font-semibold text-ink-950 dark:text-ink-50">
-              AI Assistant
+              {t("ai.assistant")}
             </h2>
-            <p className="text-[11px] text-ink-400 dark:text-ink-500">Powered by Nopal AI</p>
+            <p className="text-[11px] text-ink-400 dark:text-ink-500">{t("ai.poweredBy")}</p>
           </div>
         </div>
         <button
           onClick={onClose}
           className="rounded-lg p-1.5 text-ink-400 transition hover:bg-ink-100 hover:text-ink-700 dark:hover:bg-night-hover dark:hover:text-ink-200"
-          aria-label="Close AI panel"
+          aria-label={t("ai.closePanel")}
         >
           <X className="h-4 w-4" />
         </button>
@@ -266,16 +268,16 @@ export function AiPanel({
         {/* Insights */}
         <section className="mb-4">
           <div className="grid grid-cols-3 gap-2">
-            <Stat label="Words" value={words.toLocaleString()} />
-            <Stat label="Characters" value={characters.toLocaleString()} />
-            <Stat label="Read time" value={`${readingMinutes}m`} />
+            <Stat label={t("ai.words")} value={words.toLocaleString()} />
+            <Stat label={t("ai.characters")} value={characters.toLocaleString()} />
+            <Stat label={t("ai.readTime")} value={t("ai.minShort", { n: readingMinutes })} />
           </div>
         </section>
 
         {/* Custom instruction */}
         <section className="mb-4">
           <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-400 dark:text-ink-500">
-            Ask Nopal AI
+            {t("ai.ask")}
           </label>
           <div className="relative">
             <textarea
@@ -292,7 +294,7 @@ export function AiPanel({
                 }
               }}
               rows={2}
-              placeholder="e.g. Make this more persuasive, or write an intro about…"
+              placeholder={t("ai.placeholder")}
               className="w-full resize-none rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 outline-none transition placeholder:text-ink-400 focus:border-nopal-400 dark:border-night-border dark:bg-night-input dark:text-ink-100"
             />
             <button
@@ -301,8 +303,8 @@ export function AiPanel({
               }
               disabled={status === "loading"}
               className="absolute bottom-2 right-2 grid h-7 w-7 place-items-center rounded-lg bg-nopal-600 text-white transition hover:bg-nopal-700 disabled:opacity-50"
-              aria-label="Run instruction"
-              title="Run (⌘⏎)"
+              aria-label={t("ai.runInstruction")}
+              title={t("ai.run")}
             >
               <Send className="h-3.5 w-3.5" />
             </button>
@@ -312,7 +314,7 @@ export function AiPanel({
         {/* Quick actions */}
         <section>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400 dark:text-ink-500">
-            Quick actions
+            {t("ai.quickActions")}
           </h3>
           <div className="grid grid-cols-2 gap-1.5">
             {AI_ACTIONS.map((tool) => (
@@ -320,14 +322,14 @@ export function AiPanel({
                 key={tool.id}
                 onClick={() => handleActionClick(tool)}
                 disabled={status === "loading"}
-                title={tool.description}
+                title={t(`aiact.${tool.id}.desc`)}
                 className={cn(
                   "rounded-lg border border-ink-200 bg-white px-2.5 py-2 text-left text-xs font-medium text-ink-700 transition hover:border-nopal-300 hover:bg-nopal-50 disabled:opacity-50 dark:border-night-border dark:bg-night-raised dark:text-ink-200 dark:hover:border-nopal-500/50 dark:hover:bg-nopal-500/10",
                   activeAction?.id === tool.id &&
                     "border-nopal-300 bg-nopal-50 dark:border-nopal-500/50 dark:bg-nopal-500/10",
                 )}
               >
-                {tool.label}
+                {t(`aiact.${tool.id}.label`)}
               </button>
             ))}
           </div>
@@ -337,7 +339,7 @@ export function AiPanel({
         {awaitingLanguage && activeAction?.needsLanguage && (
           <section className="mt-4 animate-fade-in rounded-xl border border-nopal-200 bg-nopal-50/60 p-3 dark:border-nopal-500/30 dark:bg-nopal-500/10">
             <label className="mb-1.5 block text-xs font-medium text-nopal-800 dark:text-nopal-300">
-              Translate to
+              {t("ai.translateTo")}
             </label>
             <div className="flex gap-2">
               <select
@@ -347,7 +349,7 @@ export function AiPanel({
               >
                 {TRANSLATE_LANGUAGES.map((l) => (
                   <option key={l} value={l}>
-                    {l}
+                    {t(`tlang.${l}`)}
                   </option>
                 ))}
               </select>
@@ -355,7 +357,7 @@ export function AiPanel({
                 onClick={() => activeAction && void execute(activeAction, language)}
                 className="rounded-lg bg-nopal-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-nopal-700"
               >
-                Translate
+                {t("ai.translate")}
               </button>
             </div>
           </section>
@@ -366,7 +368,7 @@ export function AiPanel({
           <section className="mt-4 animate-fade-in rounded-xl border border-ink-200 bg-ink-50/60 p-4 dark:border-night-border dark:bg-night-raised">
             <div className="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300">
               <Loader2 className="h-4 w-4 animate-spin text-nopal-600" />
-              Nopal AI is working… you can keep editing.
+              {t("ai.working")}
             </div>
           </section>
         )}
@@ -383,7 +385,7 @@ export function AiPanel({
                 onClick={() => void execute(activeAction)}
                 className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-xs font-medium text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50 dark:bg-night-raised dark:text-rose-300 dark:ring-rose-500/30"
               >
-                <RotateCcw className="h-3 w-3" /> Try again
+                <RotateCcw className="h-3 w-3" /> {t("ai.tryAgain")}
               </button>
             )}
           </section>
@@ -394,16 +396,16 @@ export function AiPanel({
           <section className="mt-4 animate-fade-in rounded-xl border border-nopal-200 bg-white p-3 dark:border-nopal-500/30 dark:bg-night-raised">
             <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-nopal-800 dark:text-nopal-300">
               <Sparkles className="h-3.5 w-3.5" />
-              {activeAction?.label ?? "Result"}
+              {activeAction ? t(`aiact.${activeAction.id}.label`) : t("ai.result")}
             </div>
             <div className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-lg bg-ink-50/60 p-2.5 text-sm leading-relaxed text-ink-800 dark:bg-night-base/60 dark:text-ink-200">
               {result}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-1.5">
-              <ResultButton onClick={copyResult} icon={copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} label={copied ? "Copied" : "Copy"} />
-              <ResultButton onClick={replaceSelection} icon={<RotateCcw className="h-3.5 w-3.5" />} label="Replace" />
-              <ResultButton onClick={insertBelow} icon={<ArrowDownToLine className="h-3.5 w-3.5" />} label="Insert below" />
-              <ResultButton onClick={() => activeAction && void execute(activeAction)} icon={<RotateCcw className="h-3.5 w-3.5" />} label="Try again" />
+              <ResultButton onClick={copyResult} icon={copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} label={copied ? t("ai.copied") : t("ai.copy")} />
+              <ResultButton onClick={replaceSelection} icon={<RotateCcw className="h-3.5 w-3.5" />} label={t("ai.replace")} />
+              <ResultButton onClick={insertBelow} icon={<ArrowDownToLine className="h-3.5 w-3.5" />} label={t("ai.insertBelow")} />
+              <ResultButton onClick={() => activeAction && void execute(activeAction)} icon={<RotateCcw className="h-3.5 w-3.5" />} label={t("ai.tryAgain")} />
             </div>
             <button
               onClick={() => {
@@ -412,7 +414,7 @@ export function AiPanel({
               }}
               className="mt-2 w-full rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-500 transition hover:bg-ink-100 dark:text-ink-400 dark:hover:bg-night-hover"
             >
-              Close result
+              {t("ai.closeResult")}
             </button>
           </section>
         )}
@@ -420,8 +422,7 @@ export function AiPanel({
 
       <div className="border-t border-ink-100 p-3 dark:border-night-border">
         <p className="text-[11px] leading-relaxed text-ink-400 dark:text-ink-500">
-          AI can make mistakes. Please verify dates, facts, and references before
-          relying on them.
+          {t("ai.disclaimer")}
         </p>
       </div>
     </aside>

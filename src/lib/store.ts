@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { STORAGE_KEY } from "./constants";
+import { readPersistedLocale, translate, type Locale } from "./i18n";
 import type {
   DocumentPatch,
   DocumentRecord,
@@ -31,8 +32,21 @@ export function deriveMeta(html: string): { preview: string; wordCount: number }
 
 const now = () => new Date().toISOString();
 
-const STARTER_HTML = `
-  <h1>Welcome to Nopal AI Docs 🌵</h1>
+const STARTER_HTML_ES = `
+  <h1>Bienvenido a Nopal: Documentos 🌵</h1>
+  <p>Este es tu primer documento. Empieza a escribir para reemplazar este texto, o explora la barra de herramientas de arriba para dar formato a tu escritura.</p>
+  <p>Algunas cosas que puedes probar de inmediato:</p>
+  <ul>
+    <li>Texto en <strong>negrita</strong>, <em>cursiva</em>, <u>subrayado</u> y <s>tachado</s></li>
+    <li>Encabezados, listas, listas de tareas, citas y bloques de código</li>
+    <li>Importa un archivo <code>.docx</code>, <code>.md</code>, <code>.txt</code> o <code>.html</code></li>
+    <li>Exporta a PDF, Word, Markdown, Texto o HTML</li>
+  </ul>
+  <blockquote><p>Consejo: abre el panel del <strong>Asistente de IA</strong> a la derecha para descubrir las herramientas de escritura.</p></blockquote>
+`;
+
+const STARTER_HTML_EN = `
+  <h1>Welcome to Nopal: Documentos 🌵</h1>
   <p>This is your first document. Start typing to replace this text, or explore the toolbar above to format your writing.</p>
   <p>A few things you can try right away:</p>
   <ul>
@@ -41,8 +55,11 @@ const STARTER_HTML = `
     <li>Import a <code>.docx</code>, <code>.md</code>, <code>.txt</code>, or <code>.html</code> file</li>
     <li>Export to PDF, Word, Markdown, Text, or HTML</li>
   </ul>
-  <blockquote><p>Tip: open the <strong>AI Assistant</strong> panel on the right to see the writing tools coming soon.</p></blockquote>
+  <blockquote><p>Tip: open the <strong>AI Assistant</strong> panel on the right to see the writing tools.</p></blockquote>
 `;
+
+const starterHtml = (locale: Locale) =>
+  locale === "en" ? STARTER_HTML_EN : STARTER_HTML_ES;
 
 /** Safely read all documents from localStorage. */
 function readAll(): DocumentRecord[] {
@@ -89,11 +106,13 @@ export const localDocumentStore: DocumentStore = {
 
   async create(input: NewDocumentInput = {}) {
     const docs = readAll();
-    const content = input.content ?? (docs.length === 0 ? STARTER_HTML : "<p></p>");
+    const locale = readPersistedLocale();
+    const content =
+      input.content ?? (docs.length === 0 ? starterHtml(locale) : "<p></p>");
     const meta = deriveMeta(content);
     const record: DocumentRecord = {
       id: nanoid(12),
-      title: input.title?.trim() || "Untitled document",
+      title: input.title?.trim() || translate(locale, "editor.untitled"),
       content,
       createdAt: now(),
       updatedAt: now(),
@@ -134,7 +153,7 @@ export const localDocumentStore: DocumentStore = {
     const copy: DocumentRecord = {
       ...source,
       id: nanoid(12),
-      title: `${source.title} (copy)`,
+      title: `${source.title}${translate(readPersistedLocale(), "editor.copySuffix")}`,
       createdAt: now(),
       updatedAt: now(),
     };

@@ -25,18 +25,20 @@ import {
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import {
   FONT_FAMILIES,
+  FONT_SIZES,
   HIGHLIGHT_COLORS,
   LINE_SPACINGS,
   TEXT_COLORS,
 } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
 
 const BLOCK_CHIPS = [
-  { label: "Title", apply: (e: Editor) => e.chain().focus().setNode("heading", { level: 1, displayStyle: "title" }).run() },
-  { label: "H1", apply: (e: Editor) => e.chain().focus().setNode("heading", { level: 1, displayStyle: null }).run() },
-  { label: "H2", apply: (e: Editor) => e.chain().focus().setNode("heading", { level: 2, displayStyle: null }).run() },
-  { label: "H3", apply: (e: Editor) => e.chain().focus().setNode("heading", { level: 3, displayStyle: null }).run() },
-  { label: "Body", apply: (e: Editor) => e.chain().focus().setParagraph().run() },
+  { labelKey: "block.title", apply: (e: Editor) => e.chain().focus().setNode("heading", { level: 1, displayStyle: "title" }).run() },
+  { labelKey: "block.h1", apply: (e: Editor) => e.chain().focus().setNode("heading", { level: 1, displayStyle: null }).run() },
+  { labelKey: "block.h2", apply: (e: Editor) => e.chain().focus().setNode("heading", { level: 2, displayStyle: null }).run() },
+  { labelKey: "block.h3", apply: (e: Editor) => e.chain().focus().setNode("heading", { level: 3, displayStyle: null }).run() },
+  { labelKey: "block.bodyShort", apply: (e: Editor) => e.chain().focus().setParagraph().run() },
 ];
 
 /**
@@ -55,69 +57,100 @@ export function MobileToolbar({
   onInsertImage: () => void;
   onInsertLink: () => void;
 }) {
+  const { t, locale } = useI18n();
   const [sheet, setSheet] = useState<null | "format" | "insert">(null);
   const close = () => setSheet(null);
+
+  const currentFont =
+    (editor.getAttributes("textStyle").fontFamily as string) || "";
+  const currentSize =
+    (editor.getAttributes("textStyle").fontSize as string) || "";
 
   return (
     <>
       {/* Bottom bar */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-ink-200 bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur dark:border-night-border dark:bg-night-surface/95 sm:hidden">
-        <BarButton label="Undo" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
+        <BarButton label={t("mob.undo")} onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
           <Undo2 className="h-5 w-5" />
         </BarButton>
-        <BarButton label="Redo" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>
+        <BarButton label={t("mob.redo")} onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>
           <Redo2 className="h-5 w-5" />
         </BarButton>
-        <BarButton label="Format" onClick={() => setSheet("format")}>
+        <BarButton label={t("mob.format")} onClick={() => setSheet("format")}>
           <Type className="h-5 w-5" />
         </BarButton>
-        <BarButton label="Insert" onClick={() => setSheet("insert")}>
+        <BarButton label={t("mob.insert")} onClick={() => setSheet("insert")}>
           <Plus className="h-5 w-5" />
         </BarButton>
-        <BarButton label="AI" highlight onClick={onOpenAi}>
+        <BarButton label={t("mob.ai")} highlight onClick={onOpenAi}>
           <Sparkles className="h-5 w-5" />
         </BarButton>
       </nav>
 
       {/* Format sheet */}
-      <BottomSheet open={sheet === "format"} onClose={close} title="Format">
+      <BottomSheet open={sheet === "format"} onClose={close} title={t("mob.format")}>
         <div className="space-y-4">
           {/* Block styles */}
           <div className="flex flex-wrap gap-2">
             {BLOCK_CHIPS.map((b) => (
               <button
-                key={b.label}
+                key={b.labelKey}
                 onClick={() => b.apply(editor)}
                 className="rounded-full border border-ink-200 px-3.5 py-1.5 text-sm font-medium text-ink-700 transition active:scale-95 dark:border-night-border dark:text-ink-200"
               >
-                {b.label}
+                {t(b.labelKey)}
               </button>
             ))}
           </div>
 
           {/* Inline marks */}
           <div className="grid grid-cols-3 gap-2">
-            <SheetToggle active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} icon={<Bold className="h-5 w-5" />} label="Bold" />
-            <SheetToggle active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} icon={<Italic className="h-5 w-5" />} label="Italic" />
-            <SheetToggle active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()} icon={<UnderlineIcon className="h-5 w-5" />} label="Underline" />
+            <SheetToggle active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} icon={<Bold className="h-5 w-5" />} label={t("menu.boldF")} />
+            <SheetToggle active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} icon={<Italic className="h-5 w-5" />} label={t("menu.italicF")} />
+            <SheetToggle active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()} icon={<UnderlineIcon className="h-5 w-5" />} label={t("menu.underlineF")} />
           </div>
 
-          {/* Font family */}
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-ink-500 dark:text-ink-400">Font</span>
-            <select
-              onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}
-              value={(editor.getAttributes("textStyle").fontFamily as string) || ""}
-              className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 dark:border-night-border dark:bg-night-input dark:text-ink-100"
-            >
-              <option value="">Default</option>
-              {FONT_FAMILIES.map((f) => (
-                <option key={f.value} value={f.value}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* Font family + size */}
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-ink-500 dark:text-ink-400">{t("mob.font")}</span>
+              <select
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v) editor.chain().focus().setFontFamily(v).run();
+                  else editor.chain().focus().unsetFontFamily().run();
+                }}
+                value={currentFont}
+                className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 dark:border-night-border dark:bg-night-input dark:text-ink-100"
+              >
+                <option value="">{t("common.default")}</option>
+                {FONT_FAMILIES.map((f, i) => (
+                  <option key={`${f.value}-${i}`} value={f.value}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-ink-500 dark:text-ink-400">{t("mob.fontSize")}</span>
+              <select
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v) editor.chain().focus().setFontSize(`${v}px`).run();
+                  else editor.chain().focus().unsetFontSize().run();
+                }}
+                value={currentSize ? currentSize.replace("px", "") : ""}
+                className="w-20 rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 dark:border-night-border dark:bg-night-input dark:text-ink-100"
+              >
+                <option value="">—</option>
+                {FONT_SIZES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
           {/* Alignment + lists */}
           <div className="grid grid-cols-5 gap-2">
@@ -137,25 +170,25 @@ export function MobileToolbar({
                 onClick={() => editor.chain().focus().setLineHeight(s.value).run()}
                 className="rounded-full border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700 dark:border-night-border dark:text-ink-200"
               >
-                {s.label}
+                {s.tkey ? t(s.tkey) : s.label}
               </button>
             ))}
           </div>
 
           {/* Colors */}
           <div>
-            <span className="mb-1 block text-xs font-medium text-ink-500 dark:text-ink-400">Text color</span>
+            <span className="mb-1 block text-xs font-medium text-ink-500 dark:text-ink-400">{t("mob.textColor")}</span>
             <div className="flex flex-wrap gap-2">
               {TEXT_COLORS.map((c) => (
-                <button key={c} onClick={() => editor.chain().focus().setColor(c).run()} className="h-8 w-8 rounded-full border border-ink-200 dark:border-night-border" style={{ backgroundColor: c }} aria-label={`Text ${c}`} />
+                <button key={c} onClick={() => editor.chain().focus().setColor(c).run()} className="h-8 w-8 rounded-full border border-ink-200 dark:border-night-border" style={{ backgroundColor: c }} aria-label={`${t("mob.textColor")} ${c}`} />
               ))}
             </div>
           </div>
           <div>
-            <span className="mb-1 block text-xs font-medium text-ink-500 dark:text-ink-400">Highlight</span>
+            <span className="mb-1 block text-xs font-medium text-ink-500 dark:text-ink-400">{t("mob.highlight")}</span>
             <div className="flex flex-wrap gap-2">
               {HIGHLIGHT_COLORS.map((c) => (
-                <button key={c} onClick={() => editor.chain().focus().toggleHighlight({ color: c }).run()} className="h-8 w-8 rounded-full border border-ink-200 dark:border-night-border" style={{ backgroundColor: c }} aria-label={`Highlight ${c}`} />
+                <button key={c} onClick={() => editor.chain().focus().toggleHighlight({ color: c }).run()} className="h-8 w-8 rounded-full border border-ink-200 dark:border-night-border" style={{ backgroundColor: c }} aria-label={`${t("mob.highlight")} ${c}`} />
               ))}
             </div>
           </div>
@@ -163,22 +196,22 @@ export function MobileToolbar({
       </BottomSheet>
 
       {/* Insert sheet */}
-      <BottomSheet open={sheet === "insert"} onClose={close} title="Insert">
+      <BottomSheet open={sheet === "insert"} onClose={close} title={t("mob.insert")}>
         <div className="grid grid-cols-3 gap-3">
-          <SheetTile icon={<ImageIcon className="h-6 w-6" />} label="Image" onClick={() => { close(); onInsertImage(); }} />
-          <SheetTile icon={<TableIcon className="h-6 w-6" />} label="Table" onClick={() => { close(); editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(); }} />
-          <SheetTile icon={<Link2 className="h-6 w-6" />} label="Link" onClick={() => { close(); onInsertLink(); }} />
-          <SheetTile icon={<Minus className="h-6 w-6" />} label="Divider" onClick={() => { close(); editor.chain().focus().setHorizontalRule().run(); }} />
+          <SheetTile icon={<ImageIcon className="h-6 w-6" />} label={t("mob.image")} onClick={() => { close(); onInsertImage(); }} />
+          <SheetTile icon={<TableIcon className="h-6 w-6" />} label={t("mob.table")} onClick={() => { close(); editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(); }} />
+          <SheetTile icon={<Link2 className="h-6 w-6" />} label={t("mob.link")} onClick={() => { close(); onInsertLink(); }} />
+          <SheetTile icon={<Minus className="h-6 w-6" />} label={t("mob.divider")} onClick={() => { close(); editor.chain().focus().setHorizontalRule().run(); }} />
           <SheetTile
             icon={<span className="text-base font-semibold">📅</span>}
-            label="Date"
+            label={t("mob.date")}
             onClick={() => {
               close();
-              const d = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+              const d = new Date().toLocaleDateString(locale === "es" ? "es-ES" : "en-US", { year: "numeric", month: "long", day: "numeric" });
               editor.chain().focus().insertContent(d).run();
             }}
           />
-          <SheetTile icon={<span className="text-base font-semibold">⤓</span>} label="Page break" onClick={() => { close(); editor.chain().focus().setPageBreak().run(); }} />
+          <SheetTile icon={<span className="text-base font-semibold">⤓</span>} label={t("mob.pageBreak")} onClick={() => { close(); editor.chain().focus().setPageBreak().run(); }} />
         </div>
       </BottomSheet>
     </>

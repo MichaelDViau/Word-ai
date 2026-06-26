@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
 
 interface Match {
@@ -70,6 +71,7 @@ export function FindReplace({
   open: boolean;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [replacement, setReplacement] = useState("");
   const [matchCase, setMatchCase] = useState(false);
@@ -140,12 +142,12 @@ export function FindReplace({
     <div className="fixed right-4 top-28 z-40 w-80 max-w-[92vw] animate-fade-in rounded-xl border border-ink-200 bg-white p-3 shadow-xl dark:border-night-border dark:bg-night-raised dark:shadow-black/40">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wide text-ink-400 dark:text-ink-500">
-          Find &amp; replace
+          {t("find.title")}
         </span>
         <button
           onClick={onClose}
           className="rounded-md p-1 text-ink-400 transition hover:bg-ink-100 hover:text-ink-700 dark:hover:bg-night-hover"
-          aria-label="Close find and replace"
+          aria-label={t("find.close")}
         >
           <X className="h-4 w-4" />
         </button>
@@ -160,7 +162,7 @@ export function FindReplace({
             if (e.key === "Enter") go(e.shiftKey ? -1 : 1);
             if (e.key === "Escape") onClose();
           }}
-          placeholder="Find"
+          placeholder={t("find.find")}
           className="min-w-0 flex-1 rounded-lg border border-ink-200 bg-white px-2.5 py-1.5 text-sm text-ink-900 outline-none focus:border-nopal-400 dark:border-night-border dark:bg-night-input dark:text-ink-100"
         />
         <span className="w-16 shrink-0 text-center text-xs tabular-nums text-ink-400 dark:text-ink-500">
@@ -170,7 +172,7 @@ export function FindReplace({
           onClick={() => go(-1)}
           disabled={!matches.length}
           className="grid h-8 w-8 place-items-center rounded-lg text-ink-500 transition hover:bg-ink-100 disabled:opacity-40 dark:text-ink-300 dark:hover:bg-night-hover"
-          aria-label="Previous match"
+          aria-label={t("find.previous")}
         >
           <ChevronUp className="h-4 w-4" />
         </button>
@@ -178,7 +180,7 @@ export function FindReplace({
           onClick={() => go(1)}
           disabled={!matches.length}
           className="grid h-8 w-8 place-items-center rounded-lg text-ink-500 transition hover:bg-ink-100 disabled:opacity-40 dark:text-ink-300 dark:hover:bg-night-hover"
-          aria-label="Next match"
+          aria-label={t("find.next")}
         >
           <ChevronDown className="h-4 w-4" />
         </button>
@@ -187,7 +189,7 @@ export function FindReplace({
       <input
         value={replacement}
         onChange={(e) => setReplacement(e.target.value)}
-        placeholder="Replace with"
+        placeholder={t("find.replaceWith")}
         className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-2.5 py-1.5 text-sm text-ink-900 outline-none focus:border-nopal-400 dark:border-night-border dark:bg-night-input dark:text-ink-100"
       />
 
@@ -199,7 +201,7 @@ export function FindReplace({
             onChange={(e) => setMatchCase(e.target.checked)}
             className="h-3.5 w-3.5 accent-nopal-600"
           />
-          Match case
+          {t("find.matchCase")}
         </label>
         <div className="flex gap-1.5">
           <button
@@ -207,14 +209,14 @@ export function FindReplace({
             disabled={!matches.length}
             className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-100 disabled:opacity-40 dark:text-ink-200 dark:hover:bg-night-hover"
           >
-            Replace
+            {t("find.replace")}
           </button>
           <button
             onClick={replaceAll}
             disabled={!matches.length}
             className="rounded-lg bg-nopal-600 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-nopal-700 disabled:opacity-40"
           >
-            Replace all
+            {t("find.replaceAll")}
           </button>
         </div>
       </div>

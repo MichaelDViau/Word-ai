@@ -13,20 +13,23 @@ import { Logo } from "@/components/Logo";
 import { DocumentCard } from "@/components/dashboard/DocumentCard";
 import { Modal } from "@/components/ui/Modal";
 import { ThemeToggle } from "@/components/editor/ThemeToggle";
+import { LanguageToggle } from "@/components/editor/LanguageToggle";
 import { useDocuments } from "@/lib/useDocuments";
 import { ACCEPTED_IMPORT_TYPES, importFile } from "@/lib/import";
 import { localDocumentStore } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 import type { DocumentRecord, SortKey } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
-const SORT_LABELS: Record<SortKey, string> = {
-  recent: "Last modified",
-  title: "Title (A–Z)",
-  created: "Date created",
+const SORT_KEYS: Record<SortKey, string> = {
+  recent: "dash.sort.recent",
+  title: "dash.sort.title",
+  created: "dash.sort.created",
 };
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const { documents, loading, error, create, rename, duplicate, remove, refresh } =
     useDocuments();
 
@@ -71,7 +74,7 @@ export default function DashboardPage() {
       router.push(`/editor/${doc.id}`);
     } catch (err) {
       setImportError(
-        err instanceof Error ? err.message : "Could not import that file.",
+        err instanceof Error ? err.message : t("dash.couldNotImport"),
       );
       setImporting(false);
     }
@@ -84,7 +87,7 @@ export default function DashboardPage() {
 
   async function confirmRename() {
     if (renameTarget) {
-      await rename(renameTarget.id, renameValue.trim() || "Untitled document");
+      await rename(renameTarget.id, renameValue.trim() || t("editor.untitled"));
     }
     setRenameTarget(null);
   }
@@ -101,21 +104,22 @@ export default function DashboardPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Logo />
           <div className="flex items-center gap-2">
+            <LanguageToggle />
             <ThemeToggle />
             <button
               onClick={() => fileInputRef.current?.click()}
               className="inline-flex items-center gap-2 rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm font-medium text-ink-700 transition hover:border-ink-300 hover:bg-ink-50 dark:border-night-border dark:bg-night-raised dark:text-ink-200 dark:hover:bg-night-hover"
             >
               <FileUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Open file</span>
+              <span className="hidden sm:inline">{t("dash.openFile")}</span>
             </button>
             <button
               onClick={handleCreate}
               className="inline-flex items-center gap-2 rounded-xl bg-nopal-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-nopal-700"
             >
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">New document</span>
-              <span className="sm:hidden">New</span>
+              <span className="hidden sm:inline">{t("dash.newDocument")}</span>
+              <span className="sm:hidden">{t("dash.new")}</span>
             </button>
           </div>
         </div>
@@ -126,14 +130,13 @@ export default function DashboardPage() {
         <div className="mb-8 flex flex-col gap-2">
           <div className="inline-flex w-fit items-center gap-1.5 rounded-full bg-nopal-50 px-3 py-1 text-xs font-medium text-nopal-700 dark:bg-nopal-500/15 dark:text-nopal-300">
             <Sparkles className="h-3.5 w-3.5" />
-            Your documents
+            {t("dash.yourDocuments")}
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-ink-950 dark:text-ink-50 sm:text-3xl">
-            Welcome back
+            {t("dash.welcomeBack")}
           </h1>
           <p className="text-sm text-ink-500 dark:text-ink-400">
-            Create a new document, open one from your device, or pick up where
-            you left off.
+            {t("dash.subtitle")}
           </p>
         </div>
 
@@ -144,7 +147,7 @@ export default function DashboardPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search documents…"
+              placeholder={t("dash.searchPlaceholder")}
               className="w-full rounded-xl border border-ink-200 bg-white py-2.5 pl-10 pr-4 text-sm text-ink-900 outline-none transition placeholder:text-ink-400 focus:border-nopal-400 focus:ring-2 focus:ring-nopal-100 dark:border-night-border dark:bg-night-raised dark:text-ink-100 dark:focus:ring-nopal-500/20"
             />
           </div>
@@ -155,9 +158,9 @@ export default function DashboardPage() {
               onChange={(e) => setSort(e.target.value as SortKey)}
               className="appearance-none rounded-xl border border-ink-200 bg-white py-2.5 pl-10 pr-9 text-sm font-medium text-ink-700 outline-none transition focus:border-nopal-400 focus:ring-2 focus:ring-nopal-100 dark:border-night-border dark:bg-night-raised dark:text-ink-200 dark:focus:ring-nopal-500/20"
             >
-              {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+              {(Object.keys(SORT_KEYS) as SortKey[]).map((key) => (
                 <option key={key} value={key}>
-                  {SORT_LABELS[key]}
+                  {t(SORT_KEYS[key])}
                 </option>
               ))}
             </select>
@@ -214,7 +217,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3 rounded-xl bg-white px-5 py-4 shadow-lg dark:bg-night-raised">
             <span className="h-5 w-5 animate-spin rounded-full border-2 border-nopal-200 border-t-nopal-600" />
             <span className="text-sm font-medium text-ink-700 dark:text-ink-200">
-              Importing document…
+              {t("dash.importing")}
             </span>
           </div>
         </div>
@@ -224,7 +227,7 @@ export default function DashboardPage() {
       <Modal
         open={!!renameTarget}
         onClose={() => setRenameTarget(null)}
-        title="Rename document"
+        title={t("dash.renameTitle")}
       >
         <input
           autoFocus
@@ -238,13 +241,13 @@ export default function DashboardPage() {
             onClick={() => setRenameTarget(null)}
             className="rounded-lg px-4 py-2 text-sm font-medium text-ink-600 hover:bg-ink-50 dark:text-ink-300 dark:hover:bg-night-hover"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={confirmRename}
             className="rounded-lg bg-nopal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-nopal-700"
           >
-            Save
+            {t("common.save")}
           </button>
         </div>
       </Modal>
@@ -253,27 +256,27 @@ export default function DashboardPage() {
       <Modal
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title="Delete document"
+        title={t("dash.deleteTitle")}
       >
         <p className="text-sm text-ink-600 dark:text-ink-300">
-          Are you sure you want to delete{" "}
+          {t("dash.deleteConfirmPre")}
           <span className="font-semibold text-ink-900 dark:text-ink-100">
             {deleteTarget?.title}
           </span>
-          ? This action can&apos;t be undone.
+          {t("dash.deleteConfirmPost")}
         </p>
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={() => setDeleteTarget(null)}
             className="rounded-lg px-4 py-2 text-sm font-medium text-ink-600 hover:bg-ink-50 dark:text-ink-300 dark:hover:bg-night-hover"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={confirmDelete}
             className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </Modal>
@@ -303,6 +306,7 @@ function EmptyState({
   onCreate: () => void;
   onOpen: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="grid place-items-center rounded-2xl border border-dashed border-ink-200 bg-white py-20 text-center dark:border-night-border dark:bg-night-surface">
       <div className="max-w-sm px-6">
@@ -310,12 +314,10 @@ function EmptyState({
           <Plus className="h-7 w-7 text-nopal-600 dark:text-nopal-400" />
         </div>
         <h2 className="text-lg font-semibold text-ink-950 dark:text-ink-50">
-          {hasDocs ? "No matching documents" : "No documents yet"}
+          {hasDocs ? t("dash.noMatching") : t("dash.noDocsYet")}
         </h2>
         <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">
-          {hasDocs
-            ? "Try a different search term."
-            : "Create your first document or open a file from your device to get started."}
+          {hasDocs ? t("dash.tryDifferentSearch") : t("dash.emptyHint")}
         </p>
         {!hasDocs && (
           <div className="mt-6 flex items-center justify-center gap-2">
@@ -324,7 +326,7 @@ function EmptyState({
               className="inline-flex items-center gap-2 rounded-xl bg-nopal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-nopal-700"
             >
               <Plus className="h-4 w-4" />
-              New document
+              {t("dash.newDocument")}
             </button>
             <button
               onClick={onOpen}
@@ -333,7 +335,7 @@ function EmptyState({
               )}
             >
               <FileUp className="h-4 w-4" />
-              Open file
+              {t("dash.openFile")}
             </button>
           </div>
         )}

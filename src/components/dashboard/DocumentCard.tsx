@@ -10,20 +10,22 @@ import {
   Trash2,
 } from "lucide-react";
 import type { DocumentRecord } from "@/lib/types";
+import { useI18n, type TFunction, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, t: TFunction, locale: Locale): string {
   const date = new Date(iso);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMin = Math.round(diffMs / 60000);
-  if (diffMin < 1) return "Just now";
-  if (diffMin < 60) return `${diffMin} min ago`;
+  if (diffMin < 1) return t("card.justNow");
+  if (diffMin < 60) return t("card.minAgo", { n: diffMin });
   const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} hr ago`;
+  if (diffHr < 24) return t("card.hrAgo", { n: diffHr });
   const diffDay = Math.round(diffHr / 24);
-  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? "s" : ""} ago`;
-  return date.toLocaleDateString(undefined, {
+  if (diffDay < 7)
+    return diffDay > 1 ? t("card.daysAgo", { n: diffDay }) : t("card.dayAgo", { n: diffDay });
+  return date.toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -41,6 +43,7 @@ export function DocumentCard({
   onDuplicate: () => void;
   onDelete: () => void;
 }) {
+  const { t, locale } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -65,12 +68,12 @@ export function DocumentCard({
       <Link
         href={`/editor/${doc.id}`}
         className="flex flex-1 flex-col"
-        aria-label={`Open ${doc.title}`}
+        aria-label={t("card.open", { title: doc.title })}
       >
         {/* Mini page preview */}
         <div className="relative h-36 overflow-hidden border-b border-ink-100 bg-gradient-to-b from-ink-50 to-white px-5 pt-5 dark:border-night-border dark:from-night-raised dark:to-night-surface">
           <p className="line-clamp-5 text-[11px] leading-relaxed text-ink-400 dark:text-ink-500">
-            {doc.preview || "Empty document"}
+            {doc.preview || t("card.emptyDocument")}
           </p>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent dark:from-night-surface" />
         </div>
@@ -81,7 +84,8 @@ export function DocumentCard({
               {doc.title}
             </h3>
             <p className="mt-0.5 text-xs text-ink-400 dark:text-ink-500">
-              {formatDate(doc.updatedAt)} · {doc.wordCount} words
+              {formatDate(doc.updatedAt, t, locale)} ·{" "}
+              {t("card.words", { n: doc.wordCount })}
             </p>
           </div>
         </div>
@@ -98,7 +102,7 @@ export function DocumentCard({
             "rounded-lg bg-white/80 p-1.5 text-ink-500 opacity-0 shadow-sm backdrop-blur transition hover:bg-white hover:text-ink-900 group-hover:opacity-100 dark:bg-night-raised/80 dark:text-ink-300 dark:hover:bg-night-raised dark:hover:text-ink-50",
             menuOpen && "opacity-100",
           )}
-          aria-label="Document options"
+          aria-label={t("card.options")}
           aria-haspopup="menu"
         >
           <MoreVertical className="h-4 w-4" />
@@ -108,12 +112,12 @@ export function DocumentCard({
             role="menu"
             className="absolute right-0 top-9 z-20 w-44 animate-fade-in overflow-hidden rounded-xl border border-ink-200 bg-white py-1 shadow-lg dark:border-night-border dark:bg-night-raised"
           >
-            <MenuItem icon={<Pencil className="h-4 w-4" />} label="Rename" onClick={() => runAction(onRename)} />
-            <MenuItem icon={<Copy className="h-4 w-4" />} label="Duplicate" onClick={() => runAction(onDuplicate)} />
+            <MenuItem icon={<Pencil className="h-4 w-4" />} label={t("common.rename")} onClick={() => runAction(onRename)} />
+            <MenuItem icon={<Copy className="h-4 w-4" />} label={t("common.duplicate")} onClick={() => runAction(onDuplicate)} />
             <div className="my-1 h-px bg-ink-100 dark:bg-night-border" />
             <MenuItem
               icon={<Trash2 className="h-4 w-4" />}
-              label="Delete"
+              label={t("common.delete")}
               destructive
               onClick={() => runAction(onDelete)}
             />

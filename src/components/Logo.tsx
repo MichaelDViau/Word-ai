@@ -1,8 +1,12 @@
 import { cn } from "@/lib/cn";
 
 /**
- * Nopal AI wordmark + cactus glyph. Original artwork — not derived from any
- * existing product's branding.
+ * "Nopal: Documentos" wordmark + cactus glyph. The cactus mark is original
+ * artwork that doubles as a placeholder for a brand logo; swap the inline SVG
+ * here to drop in a supplied logo without touching any call sites.
+ *
+ * Wordmark style: "Nopal:" uses the main ink branding color, "Documentos" uses
+ * the brand green so it reads as a balanced, two-tone lockup.
  */
 export function Logo({
   className,
@@ -32,7 +36,8 @@ export function Logo({
       </span>
       {showWordmark && (
         <span className="text-[15px] font-semibold tracking-tight text-ink-950 dark:text-ink-50">
-          Nopal<span className="text-nopal-600 dark:text-nopal-400"> AI</span>
+          Nopal:{" "}
+          <span className="text-nopal-600 dark:text-nopal-400">Documentos</span>
         </span>
       )}
     </span>
