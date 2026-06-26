@@ -4,6 +4,9 @@
  * the editor's initial bundle.
  */
 
+/** Supported download/export formats. */
+export type ExportFormat = "pdf" | "docx" | "md" | "txt" | "html";
+
 const sanitizeFilename = (name: string) =>
   name.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, " ").trim() || "document";
 

@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --page-max: 816px; /* ~8.5in at 96dpi */
-}
-
 /* ----------------------------------------------------------------------------
    Editor (ProseMirror) content styling
    These rules style the rich-text content produced by TipTap. They are global
@@ -19,6 +15,35 @@
   font-family: Georgia, "Times New Roman", serif;
   font-size: 16px;
   line-height: 1.6;
+}
+
+/* Dark-mode content — a premium, readable "dark paper" rather than a harsh
+   inversion. The page sheet uses a deep surface; text is warmed off-white. */
+.dark .ProseMirror {
+  color: #d8dde6;
+}
+.dark .ProseMirror h2[data-style="subtitle"] {
+  color: #9aa6b8;
+}
+.dark .ProseMirror blockquote {
+  color: #aeb7c6;
+  border-left-color: #22a35f;
+}
+.dark .ProseMirror code {
+  background: #11161c;
+  color: #7dd6a2;
+}
+.dark .ProseMirror pre {
+  background: #0b0e12;
+}
+.dark .ProseMirror hr {
+  border-top-color: #272e38;
+}
+.dark .ProseMirror a {
+  color: #46bd7c;
+}
+.dark .ProseMirror p.is-editor-empty:first-child::before {
+  color: #4d5a71;
 }
 
 .ProseMirror > * + * {
@@ -155,7 +180,102 @@
 
 .ProseMirror img {
   max-width: 100%;
+  height: auto;
   border-radius: 8px;
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid #16834c;
+  outline-offset: 2px;
+}
+
+/* Tables ------------------------------------------------------------------- */
+.ProseMirror .tableWrapper {
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  overflow: hidden;
+}
+
+.ProseMirror td,
+.ProseMirror th {
+  position: relative;
+  min-width: 2em;
+  border: 1px solid #d4d9e1;
+  padding: 6px 10px;
+  vertical-align: top;
+}
+
+.ProseMirror th {
+  background: #f6f7f9;
+  font-weight: 600;
+  text-align: left;
+}
+
+.dark .ProseMirror td,
+.dark .ProseMirror th {
+  border-color: #2f3744;
+}
+
+.dark .ProseMirror th {
+  background: #11161c;
+}
+
+.ProseMirror .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 131, 76, 0.12);
+  pointer-events: none;
+}
+
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background: #16834c;
+  pointer-events: none;
+}
+
+.ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
+
+/* Page break --------------------------------------------------------------- */
+.ProseMirror .page-break {
+  position: relative;
+  height: 0;
+  margin: 1.4em 0;
+  border: none;
+  border-top: 2px dashed #aeb7c6;
+}
+
+.ProseMirror .page-break::after {
+  content: "Page break";
+  position: absolute;
+  top: -0.72em;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 0.5em;
+  background: #ffffff;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 11px;
+  color: #8290a5;
+}
+
+.dark .ProseMirror .page-break {
+  border-top-color: #3f4a5c;
+}
+.dark .ProseMirror .page-break::after {
+  background: #161b22;
+  color: #62718a;
 }
 
 /* Placeholder shown when the document is empty. */
@@ -180,7 +300,8 @@
   scrollbar-width: none;
 }
 
-/* Print styling — used by the in-app "Print" action. */
+/* Print styling — used by the in-app "Print" action. Always prints as a clean
+   light "paper" page regardless of the on-screen theme or zoom. */
 @media print {
   body * {
     visibility: hidden;
@@ -189,12 +310,32 @@
   .print-page * {
     visibility: visible;
   }
+  /* Neutralize on-screen zoom so printed output is always 100%. */
+  .page-zoom {
+    zoom: 1 !important;
+    width: auto !important;
+  }
   .print-page {
     position: absolute;
     inset: 0;
     box-shadow: none !important;
     margin: 0;
     padding: 0;
+    background: #ffffff !important;
+  }
+  /* Force readable, light content even if dark mode is active. */
+  .print-page,
+  .ProseMirror {
+    color: #1d222b !important;
+  }
+  .page-break {
+    break-after: page;
+    border: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+  }
+  .page-break::after {
+    display: none !important;
   }
   .no-print {
     display: none !important;

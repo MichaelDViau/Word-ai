@@ -40,8 +40,8 @@ export default function EditorPage() {
 
   if (status === "loading") {
     return (
-      <div className="grid min-h-screen place-items-center bg-ink-50">
-        <div className="flex items-center gap-3 text-ink-500">
+      <div className="grid min-h-screen place-items-center bg-ink-50 dark:bg-night-base">
+        <div className="flex items-center gap-3 text-ink-500 dark:text-ink-400">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span className="text-sm font-medium">Loading document…</span>
         </div>
@@ -51,12 +51,12 @@ export default function EditorPage() {
 
   if (status === "missing" || !doc) {
     return (
-      <div className="grid min-h-screen place-items-center bg-ink-50 px-4">
+      <div className="grid min-h-screen place-items-center bg-ink-50 px-4 dark:bg-night-base">
         <div className="max-w-sm text-center">
-          <h1 className="text-lg font-semibold text-ink-950">
+          <h1 className="text-lg font-semibold text-ink-950 dark:text-ink-50">
             Document not found
           </h1>
-          <p className="mt-1 text-sm text-ink-500">
+          <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">
             This document may have been deleted or isn&apos;t available on this
             device.
           </p>

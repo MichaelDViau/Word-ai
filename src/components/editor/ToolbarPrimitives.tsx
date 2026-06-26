@@ -28,10 +28,11 @@ export function ToolbarButton({
       aria-label={title}
       aria-pressed={active}
       className={cn(
-        "grid h-8 w-8 place-items-center rounded-lg text-ink-600 transition",
-        "hover:bg-ink-100 hover:text-ink-900",
+        "grid h-8 w-8 place-items-center rounded-lg text-ink-600 transition dark:text-ink-300",
+        "hover:bg-ink-100 hover:text-ink-900 dark:hover:bg-night-hover dark:hover:text-ink-50",
         "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent",
-        active && "bg-nopal-100 text-nopal-700 hover:bg-nopal-100",
+        active &&
+          "bg-nopal-100 text-nopal-700 hover:bg-nopal-100 dark:bg-nopal-500/20 dark:text-nopal-300 dark:hover:bg-nopal-500/20",
       )}
     >
       {children}
@@ -41,7 +42,7 @@ export function ToolbarButton({
 
 /** Thin vertical separator between toolbar groups. */
 export function ToolbarDivider() {
-  return <span className="mx-1 h-5 w-px shrink-0 bg-ink-200" />;
+  return <span className="mx-1 h-5 w-px shrink-0 bg-ink-200 dark:bg-night-border" />;
 }
 
 /**
@@ -84,7 +85,7 @@ export function Dropdown({
       {open && (
         <div
           className={cn(
-            "absolute top-10 z-40 animate-fade-in rounded-xl border border-ink-200 bg-white p-1.5 shadow-lg",
+            "absolute top-10 z-40 animate-fade-in rounded-xl border border-ink-200 bg-white p-1.5 shadow-lg dark:border-night-border dark:bg-night-raised dark:shadow-black/40",
             width,
             align === "right" ? "right-0" : "left-0",
           )}
@@ -119,8 +120,8 @@ export function DropdownTrigger({
       aria-label={title}
       aria-expanded={open}
       className={cn(
-        "inline-flex h-8 items-center gap-1 rounded-lg px-2 text-sm text-ink-700 transition hover:bg-ink-100",
-        open && "bg-ink-100",
+        "inline-flex h-8 items-center gap-1 rounded-lg px-2 text-sm text-ink-700 transition hover:bg-ink-100 dark:text-ink-200 dark:hover:bg-night-hover",
+        open && "bg-ink-100 dark:bg-night-hover",
         className,
       )}
     >
@@ -149,8 +150,9 @@ export function DropdownItem({
       onClick={onClick}
       style={style}
       className={cn(
-        "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm text-ink-700 transition hover:bg-ink-50",
-        active && "bg-nopal-50 text-nopal-700",
+        "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm text-ink-700 transition hover:bg-ink-50 dark:text-ink-200 dark:hover:bg-night-hover",
+        active &&
+          "bg-nopal-50 text-nopal-700 dark:bg-nopal-500/15 dark:text-nopal-300",
       )}
     >
       {children}

@@ -192,25 +192,39 @@ export function Toolbar({ editor }: { editor: Editor }) {
           />
         )}
       >
-        {(close) => (
-          <div className="max-h-72 overflow-y-auto">
-            {FONT_FAMILIES.map((font) => (
-              <DropdownItem
-                key={font.value}
-                style={{ fontFamily: font.value }}
-                active={
-                  editor.getAttributes("textStyle").fontFamily === font.value
-                }
-                onClick={() => {
-                  editor.chain().focus().setFontFamily(font.value).run();
-                  close();
-                }}
-              >
-                {font.label}
-              </DropdownItem>
-            ))}
-          </div>
-        )}
+        {(close) => {
+          const current = editor.getAttributes("textStyle").fontFamily as
+            | string
+            | undefined;
+          let lastGroup: string | undefined;
+          return (
+            <div className="max-h-72 overflow-y-auto">
+              {FONT_FAMILIES.map((font, i) => {
+                const showHeader = font.group && font.group !== lastGroup;
+                lastGroup = font.group;
+                return (
+                  <div key={`${font.value}-${i}`}>
+                    {showHeader && (
+                      <div className="px-2.5 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-ink-300 dark:text-ink-500">
+                        {font.group}
+                      </div>
+                    )}
+                    <DropdownItem
+                      style={{ fontFamily: font.value }}
+                      active={current === font.value}
+                      onClick={() => {
+                        editor.chain().focus().setFontFamily(font.value).run();
+                        close();
+                      }}
+                    >
+                      {font.label}
+                    </DropdownItem>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        }}
       </Dropdown>
 
       {/* Font size */}
@@ -473,7 +487,7 @@ function ColorMenu({
           title={title}
           aria-label={title}
           aria-expanded={open}
-          className="grid h-8 w-8 place-items-center rounded-lg text-ink-600 transition hover:bg-ink-100 hover:text-ink-900"
+          className="grid h-8 w-8 place-items-center rounded-lg text-ink-600 transition hover:bg-ink-100 hover:text-ink-900 dark:text-ink-300 dark:hover:bg-night-hover dark:hover:text-ink-50"
         >
           {icon}
         </button>
@@ -492,7 +506,7 @@ function ColorMenu({
                   close();
                 }}
                 title={c}
-                className="h-6 w-6 rounded-md border border-ink-200 transition hover:scale-110"
+                className="h-6 w-6 rounded-md border border-ink-200 transition hover:scale-110 dark:border-night-border"
                 style={{
                   backgroundColor: c,
                   outline: current === c ? "2px solid #16834c" : undefined,
@@ -508,7 +522,7 @@ function ColorMenu({
               onClear();
               close();
             }}
-            className="mt-1.5 w-full rounded-lg px-2 py-1.5 text-left text-xs text-ink-600 hover:bg-ink-50"
+            className="mt-1.5 w-full rounded-lg px-2 py-1.5 text-left text-xs text-ink-600 hover:bg-ink-50 dark:text-ink-300 dark:hover:bg-night-hover"
           >
             {clearLabel}
           </button>
@@ -554,7 +568,7 @@ function LinkButton({ editor }: { editor: Editor }) {
         <Link2 className="h-4 w-4" />
       </ToolbarButton>
       {open && (
-        <div className="absolute top-10 z-40 w-64 animate-fade-in rounded-xl border border-ink-200 bg-white p-2 shadow-lg">
+        <div className="absolute top-10 z-40 w-64 animate-fade-in rounded-xl border border-ink-200 bg-white p-2 shadow-lg dark:border-night-border dark:bg-night-raised">
           <input
             autoFocus
             value={value}
@@ -564,13 +578,13 @@ function LinkButton({ editor }: { editor: Editor }) {
               if (e.key === "Escape") setOpen(false);
             }}
             placeholder="Paste or type a URL"
-            className="w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-sm outline-none focus:border-nopal-400"
+            className="w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-sm outline-none focus:border-nopal-400 dark:border-night-border dark:bg-night-input dark:text-ink-100"
           />
           <div className="mt-2 flex justify-end gap-1.5">
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => setOpen(false)}
-              className="rounded-md px-2.5 py-1 text-xs text-ink-600 hover:bg-ink-50"
+              className="rounded-md px-2.5 py-1 text-xs text-ink-600 hover:bg-ink-50 dark:text-ink-300 dark:hover:bg-night-hover"
             >
               Cancel
             </button>
